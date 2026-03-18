@@ -1,0 +1,12 @@
+.DS_Store
+
+target/
+.vscode/
+
+rustc-ice*
+
+.idea
+
+flamegraph.svg
+
+docs/

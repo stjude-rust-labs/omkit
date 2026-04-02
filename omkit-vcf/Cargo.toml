@@ -14,6 +14,7 @@ chainfile.workspace = true
 noodles.workspace = true
 omics.workspace = true
 thiserror.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true

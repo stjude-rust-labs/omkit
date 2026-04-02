@@ -16,12 +16,13 @@ rust-version = "1.94.0"
 
 [workspace.dependencies]
 anyhow = "1.0.102"
-chainfile = "0.3.0"
+chainfile = "0.4.0"
 clap = { version = "4.6.0", features = ["derive"] }
-noodles = { version = "0.108.0", features = ["bgzf", "fasta", "vcf"] }
-omics = { version = "0.2.0", features = ["coordinate"] }
+noodles = { version = "0.108.0", features = ["bgzf", "core", "fasta", "vcf"] }
+omics = { version = "0.4.0", features = ["coordinate"] }
 omkit-vcf = { path = "omkit-vcf" }
 thiserror = "2.0.18"
+tracing = "0.1.44"
 
 [workspace.lints.rust]
 missing_docs = "warn"

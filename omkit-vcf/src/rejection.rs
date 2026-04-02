@@ -5,6 +5,12 @@ use std::fmt;
 /// The reason a VCF record was rejected during transformation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RejectionReason {
+    /// The record has no `POS` (e.g., a telomeric breakend).
+    MissingPosition,
+
+    /// The `REF` allele is missing (`.`) or empty.
+    MissingRefAllele,
+
     /// No chain interval covers this position.
     NoTarget,
 
@@ -15,6 +21,9 @@ pub enum RejectionReason {
     /// The lifted `REF` allele doesn't match the target FASTA and no
     /// swap is possible.
     MismatchedRefAllele,
+
+    /// The record's contig does not appear in the reference FASTA.
+    ContigNotInReference,
 
     /// Reverse complement of alleles failed.
     CannotReverseComplement,
@@ -31,9 +40,12 @@ impl RejectionReason {
     /// Returns the `FILTER` string for this rejection reason.
     pub fn as_filter_str(&self) -> &'static str {
         match self {
+            Self::MissingPosition => "MissingPosition",
+            Self::MissingRefAllele => "MissingRefAllele",
             Self::NoTarget => "NoTarget",
             Self::IndelStraddlesMultipleIntervals => "IndelStraddlesMultipleIntervals",
             Self::MismatchedRefAllele => "MismatchedRefAllele",
+            Self::ContigNotInReference => "ContigNotInReference",
             Self::CannotReverseComplement => "CannotReverseComplement",
             Self::AmbiguousMapping { .. } => "AmbiguousMapping",
         }
@@ -43,6 +55,8 @@ impl RejectionReason {
     /// lines.
     pub fn description(&self) -> &'static str {
         match self {
+            Self::MissingPosition => "Record has no POS value (e.g., telomeric breakend)",
+            Self::MissingRefAllele => "REF allele is missing or empty",
             Self::NoTarget => "No chain interval covers this position",
             Self::IndelStraddlesMultipleIntervals => {
                 "Variant reference span crosses a chain alignment block boundary"
@@ -50,6 +64,7 @@ impl RejectionReason {
             Self::MismatchedRefAllele => {
                 "Lifted REF allele does not match the target reference and no swap is possible"
             }
+            Self::ContigNotInReference => "Record contig does not appear in the reference FASTA",
             Self::CannotReverseComplement => "Reverse complement of alleles failed",
             Self::AmbiguousMapping { .. } => {
                 "Multiple chain intervals matched and ambiguous mapping is configured to reject"
@@ -70,9 +85,12 @@ mod tests {
 
     fn all_variants() -> Vec<RejectionReason> {
         vec![
+            RejectionReason::MissingPosition,
+            RejectionReason::MissingRefAllele,
             RejectionReason::NoTarget,
             RejectionReason::IndelStraddlesMultipleIntervals,
             RejectionReason::MismatchedRefAllele,
+            RejectionReason::ContigNotInReference,
             RejectionReason::CannotReverseComplement,
             RejectionReason::AmbiguousMapping { candidates: 3 },
         ]

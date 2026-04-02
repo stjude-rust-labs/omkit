@@ -1,86 +1,88 @@
 //! A VCF record wrapper that carries accumulated transformation state.
 
+use noodles::core::Position;
 use noodles::vcf;
-use omics::coordinate::position::base::Position;
 
 /// A VCF record with accumulated state from prior transformation stages.
 ///
 /// As a record passes through the transformer pipeline, each stage may
-/// annotate it with metadata (e.g., the lifted coordinate, whether a
-/// REF/ALT swap was detected). This struct carries both the underlying
-/// VCF record and that accumulated state.
+/// modify the record and annotate it with metadata (e.g., whether a
+/// `REF`/`ALT` swap was detected). This struct carries the current
+/// (possibly modified) record, a snapshot of the original contig,
+/// position, and `REF` allele, and accumulated state.
 #[derive(Clone, Debug)]
 pub struct VcfRecord {
-    /// The underlying `noodles` VCF record.
-    inner: vcf::variant::RecordBuf,
+    /// The current `noodles` VCF record, modified in place by transformers.
+    current: vcf::variant::RecordBuf,
 
-    /// The state accumulated by transformers.
+    /// The original contig name before any transformation.
+    original_contig: String,
+
+    /// The original 1-based VCF position before any transformation.
+    original_position: Option<Position>,
+
+    /// The original `REF` allele before any transformation.
+    original_ref_bases: String,
+
+    /// State accumulated by transformers.
     state: State,
 }
 
-/// Accumulated state from prior transformation stages.
+/// State accumulated by transformers.
 #[derive(Clone, Debug, Default)]
 pub struct State {
     /// Whether the liftover mapped to the negative strand.
-    ///
-    /// Set by `CoordinateMapper`, read by `StrandFlipper`.
     pub negative_strand: bool,
 
-    /// The number of chain alignment blocks the variant's reference
-    /// span covers.
-    ///
-    /// Set by `CoordinateMapper`, read by `IndelStraddleDetector`.
-    ///
-    /// A value > `1` means the indel straddles block boundaries.
-    pub liftover_block_count: usize,
-
-    /// Whether a REF/ALT swap was detected.
-    ///
-    /// Set by `RefValidator`, read by `SwapTransformer` and
-    /// `GenotypeInverter`.
+    /// Whether a `REF`/`ALT` swap was detected.
     pub swap_detected: bool,
-
-    /// The original contig name before liftover.
-    ///
-    /// Set by `CoordinateMapper`, read by `MetadataUpdater` and
-    /// rejected record annotation.
-    pub original_contig: Option<String>,
-
-    /// The original 1-based VCF position before liftover.
-    ///
-    /// Set by `CoordinateMapper`, read by `MetadataUpdater` and
-    /// rejected record annotation.
-    pub original_position: Option<Position>,
-
-    /// The original alleles before any transformation.
-    ///
-    /// Set by `CoordinateMapper`, read by `MetadataUpdater` and
-    /// rejected record annotation.
-    pub original_alleles: Option<Vec<String>>,
 }
 
 impl VcfRecord {
     /// Creates a new [`VcfRecord`] from a `noodles` record.
-    pub fn new(inner: vcf::variant::RecordBuf) -> Self {
+    pub fn new(current: vcf::variant::RecordBuf) -> Self {
+        let original_contig = String::from(current.reference_sequence_name());
+        let original_position = current.variant_start();
+        let original_ref_bases = String::from(current.reference_bases());
+
         Self {
-            inner,
+            current,
+            original_contig,
+            original_position,
+            original_ref_bases,
             state: State::default(),
         }
     }
 
-    /// Returns a reference to the underlying `noodles` record.
-    pub fn inner(&self) -> &vcf::variant::RecordBuf {
-        &self.inner
+    /// Returns the original contig name before any transformation.
+    pub fn original_contig(&self) -> &str {
+        &self.original_contig
     }
 
-    /// Returns a mutable reference to the underlying `noodles` record.
-    pub fn inner_mut(&mut self) -> &mut vcf::variant::RecordBuf {
-        &mut self.inner
+    /// Returns the original 1-based VCF position before any
+    /// transformation.
+    pub fn original_position(&self) -> Option<Position> {
+        self.original_position
     }
 
-    /// Consumes the wrapper and returns the underlying `noodles` record.
-    pub fn into_inner(self) -> vcf::variant::RecordBuf {
-        self.inner
+    /// Returns the original `REF` allele before any transformation.
+    pub fn original_ref_bases(&self) -> &str {
+        &self.original_ref_bases
+    }
+
+    /// Returns a reference to the current `noodles` record.
+    pub fn current(&self) -> &vcf::variant::RecordBuf {
+        &self.current
+    }
+
+    /// Returns a mutable reference to the current `noodles` record.
+    pub fn current_mut(&mut self) -> &mut vcf::variant::RecordBuf {
+        &mut self.current
+    }
+
+    /// Consumes the wrapper and returns the current `noodles` record.
+    pub fn into_current(self) -> vcf::variant::RecordBuf {
+        self.current
     }
 
     /// Returns a reference to the accumulated state.

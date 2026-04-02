@@ -12,9 +12,16 @@
 
 pub mod record;
 pub mod rejection;
+pub mod transformer;
 
 use record::VcfRecord;
 use rejection::RejectionReason;
+
+/// The VCF missing value indicator (`.`).
+pub const MISSING: &str = ".";
+
+/// The VCF spanning deletion allele (`*`).
+pub const SPANNING_DELETION: &str = "*";
 
 /// An error that can occur during transformation.
 #[derive(Debug, thiserror::Error)]
@@ -28,6 +35,7 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// The result of a single transformer processing a record.
+#[derive(Debug)]
 pub enum Outcome {
     /// The record was accepted, possibly modified.
     Accepted(VcfRecord),
@@ -42,12 +50,25 @@ pub enum Outcome {
 }
 
 /// A transformer that processes a single VCF record.
-pub trait Transformer {
+///
+/// Implementations must be `Send + Sync` to support future multithreaded
+/// pipeline execution. Statistics should use atomic types for thread safety.
+/// The default [`finish()`](Transformer::finish) implementation is a no-op;
+/// override it to log summary statistics after all records have been
+/// processed.
+pub trait Transformer: Send + Sync {
     /// Processes a single record and returns the outcome.
     fn transform(&self, record: VcfRecord) -> Result<Outcome>;
+
+    /// Called after all records have been processed.
+    ///
+    /// Implementations should log summary statistics here. The default
+    /// implementation is a no-op.
+    fn finish(&self) {}
 }
 
 /// The results of processing a single input record through the pipeline.
+#[derive(Debug)]
 pub struct PipelineResults {
     /// Records that made it through all transformers successfully.
     pub accepted: Vec<VcfRecord>,
@@ -96,6 +117,51 @@ impl Pipeline {
             accepted: current,
             rejected,
         })
+    }
+
+    /// Processes all records and calls [`Transformer::finish()`] on each
+    /// transformer when complete.
+    ///
+    /// [`Transformer::finish()`] is called even if a record produces an
+    /// error, ensuring that statistics are always logged.
+    pub fn process_all(
+        &self,
+        records: impl IntoIterator<Item = VcfRecord>,
+    ) -> Result<PipelineResults> {
+        let mut all_accepted = Vec::new();
+        let mut all_rejected = Vec::new();
+        let mut error = None;
+
+        for record in records {
+            match self.process(record) {
+                Ok(results) => {
+                    all_accepted.extend(results.accepted);
+                    all_rejected.extend(results.rejected);
+                }
+                Err(e) => {
+                    error = Some(e);
+                    break;
+                }
+            }
+        }
+
+        self.finish();
+
+        if let Some(e) = error {
+            return Err(e);
+        }
+
+        Ok(PipelineResults {
+            accepted: all_accepted,
+            rejected: all_rejected,
+        })
+    }
+
+    /// Calls [`Transformer::finish()`] on each transformer in order.
+    pub fn finish(&self) {
+        for transformer in &self.transformers {
+            transformer.finish();
+        }
     }
 }
 
@@ -161,5 +227,18 @@ mod tests {
         let results = pipeline.process(record).unwrap();
         assert!(results.accepted.is_empty());
         assert_eq!(results.rejected.len(), 2);
+    }
+
+    #[test]
+    fn process_all_aggregates_and_finishes() {
+        let pipeline = Pipeline::new(vec![Box::new(PassThrough)]);
+        let records = vec![
+            VcfRecord::new(Default::default()),
+            VcfRecord::new(Default::default()),
+            VcfRecord::new(Default::default()),
+        ];
+        let results = pipeline.process_all(records).unwrap();
+        assert_eq!(results.accepted.len(), 3);
+        assert!(results.rejected.is_empty());
     }
 }

@@ -92,14 +92,14 @@ impl Extensions {
     pub fn insert<T: Extension>(&mut self, val: T) -> Option<T> {
         self.map
             .insert(TypeId::of::<T>(), Box::new(val))
-            .and_then(|b| (&*b).as_any().downcast_ref::<T>().cloned())
+            .and_then(|b| (*b).as_any().downcast_ref::<T>().cloned())
     }
 
     /// Returns a reference to the value of type `T`, if present.
     pub fn get<T: Extension>(&self) -> Option<&T> {
         self.map
             .get(&TypeId::of::<T>())
-            .and_then(|b| (&**b).as_any().downcast_ref())
+            .and_then(|b| (**b).as_any().downcast_ref())
     }
 
     /// Returns a reference to the value of type `T`, or an error if it
@@ -118,8 +118,7 @@ impl Extensions {
 
 impl fmt::Debug for Extensions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let type_names: Vec<&'static str> =
-            self.map.values().map(|v| (&**v).type_name()).collect();
+        let type_names: Vec<&'static str> = self.map.values().map(|v| (**v).type_name()).collect();
         f.debug_struct("Extensions")
             .field("types", &type_names)
             .finish()
@@ -174,8 +173,14 @@ mod tests {
         let err = ext.require::<Alpha>("TestConsumer").unwrap_err();
 
         let msg = err.to_string();
-        assert!(msg.contains("TestConsumer"), "error should name the consumer: {msg}");
-        assert!(msg.contains("Alpha"), "error should name the producer: {msg}");
+        assert!(
+            msg.contains("TestConsumer"),
+            "error should name the consumer: {msg}"
+        );
+        assert!(
+            msg.contains("Alpha"),
+            "error should name the producer: {msg}"
+        );
     }
 
     #[test]

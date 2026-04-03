@@ -394,7 +394,12 @@ mod tests {
             Outcome::Accepted(r) => {
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(2));
-                assert!(!r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    !r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
             }
             other => panic!("expected `Accepted`, got {other:?}"),
         }
@@ -409,8 +414,22 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.reference_sequence_name(), "seq0");
-                assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.variant_start(), Position::new(3));
+                assert_eq!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .original
+                        .reference_sequence_name(),
+                    "seq0"
+                );
+                assert_eq!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .original
+                        .variant_start(),
+                    Position::new(3)
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(3));
             }
@@ -430,7 +449,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(9));
             }
@@ -628,7 +652,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(6));
             }
@@ -648,7 +677,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(6));
             }
@@ -667,7 +701,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(8));
             }
@@ -686,7 +725,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(5));
             }
@@ -705,7 +749,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().variant_start(), Position::new(10));
             }
             other => panic!("expected `Accepted`, got {other:?}"),
@@ -723,7 +772,12 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<CoordinateMapperState>("test").unwrap().negative_strand);
+                assert!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .negative_strand
+                );
                 assert_eq!(r.current().variant_start(), Position::new(1));
             }
             other => panic!("expected `Accepted`, got {other:?}"),
@@ -739,9 +793,30 @@ mod tests {
 
         match outcome {
             Outcome::Accepted(r) => {
-                assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.reference_sequence_name(), "seq0");
-                assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.variant_start(), Position::new(4));
-                assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.reference_bases(), "ACGT");
+                assert_eq!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .original
+                        .reference_sequence_name(),
+                    "seq0"
+                );
+                assert_eq!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .original
+                        .variant_start(),
+                    Position::new(4)
+                );
+                assert_eq!(
+                    r.extensions()
+                        .require::<CoordinateMapperState>("test")
+                        .unwrap()
+                        .original
+                        .reference_bases(),
+                    "ACGT"
+                );
                 assert_eq!(r.current().reference_sequence_name(), "seq1");
                 assert_eq!(r.current().variant_start(), Position::new(4));
             }
@@ -982,9 +1057,30 @@ mod tests {
         match outcome {
             Outcome::Split(records) => {
                 for r in &records {
-                    assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.reference_sequence_name(), "seq0");
-                    assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.variant_start(), Position::new(1));
-                    assert_eq!(r.extensions().require::<CoordinateMapperState>("test").unwrap().original.reference_bases(), "ACGTNNACGT");
+                    assert_eq!(
+                        r.extensions()
+                            .require::<CoordinateMapperState>("test")
+                            .unwrap()
+                            .original
+                            .reference_sequence_name(),
+                        "seq0"
+                    );
+                    assert_eq!(
+                        r.extensions()
+                            .require::<CoordinateMapperState>("test")
+                            .unwrap()
+                            .original
+                            .variant_start(),
+                        Position::new(1)
+                    );
+                    assert_eq!(
+                        r.extensions()
+                            .require::<CoordinateMapperState>("test")
+                            .unwrap()
+                            .original
+                            .reference_bases(),
+                        "ACGTNNACGT"
+                    );
                 }
             }
             other => panic!("expected `Split`, got {other:?}"),

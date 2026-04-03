@@ -5,13 +5,13 @@
 //! record's contig and position. It operates in one of two modes:
 //!
 //! * In [`Mode::Reject`] mode (typically used pre-liftover), any mismatch
-//! between the `REF` allele and the FASTA causes the record to be
-//! rejected with [`RejectionReason::MismatchedRefAllele`].
+//!   between the `REF` allele and the FASTA causes the record to be
+//!   rejected with [`RejectionReason::MismatchedRefAllele`].
 //! * In [`Mode::DetectSwap`] mode (typically used post-liftover), a
-//! mismatch triggers a check of the `ALT` allele against the reference.
-//! If the `ALT` matches, a `REF`/`ALT` swap is flagged on the record's
-//! state so that a downstream transformer can perform the actual swap.
-//! If neither allele matches, the record is rejected.
+//!   mismatch triggers a check of the `ALT` allele against the reference.
+//!   If the `ALT` matches, a `REF`/`ALT` swap is flagged on the record's
+//!   state so that a downstream transformer can perform the actual swap.
+//!   If neither allele matches, the record is rejected.
 //!
 //! This transformer assumes that records are biallelic when running in
 //! [`Mode::DetectSwap`]. A `SplitMultiAllelic` transformer must run
@@ -242,9 +242,9 @@ where
                         ref_allele = %ref_bases,
                         "REF/ALT swap detected"
                     );
-                    record
-                        .extensions_mut()
-                        .insert(RefValidatorState { swap_detected: true });
+                    record.extensions_mut().insert(RefValidatorState {
+                        swap_detected: true,
+                    });
                     self.stats.swaps_detected.fetch_add(1, Ordering::Relaxed);
                     Ok(Outcome::Accepted(record))
                 } else {
@@ -358,7 +358,12 @@ mod tests {
         let outcome = validator.transform(record).unwrap();
         match outcome {
             Outcome::Accepted(r) => {
-                assert!(r.extensions().require::<RefValidatorState>("test").unwrap().swap_detected)
+                assert!(
+                    r.extensions()
+                        .require::<RefValidatorState>("test")
+                        .unwrap()
+                        .swap_detected
+                )
             }
             other => panic!("expected `Accepted` with swap, got {other:?}"),
         }

@@ -1,0 +1,20 @@
+[package]
+name = "omkit-vcf"
+version = "0.0.0"
+description = "A library for VCF transformations including liftover and normalization"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+chainfile.workspace = true
+noodles.workspace = true
+omics.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true
